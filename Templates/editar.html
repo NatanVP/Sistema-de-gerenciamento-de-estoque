@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Editar Produto</h2>
+<form action="/editar_produto/{{ produto.id }}" method="post" onsubmit='return validarFormulario()'>
+    Nome: <input type="text" name="nome" value="{{ produto.nome }}" required><br>
+    Categoria: <input type="text" name="categoria" value="{{ produto.categoria }}"><br>
+    Quantidade: <input type="number" name="quantidade" min="0" value="{{ produto.quantidade }}"><br>
+    <button type="submit">Salvar Alterações</button>
+</form>
+{% endblock %}
