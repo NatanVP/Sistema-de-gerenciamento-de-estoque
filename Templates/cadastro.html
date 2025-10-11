@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .form-container {
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #f2f6fa;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container h2 {
+        text-align: center;
+        color: #003366;
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+        color: #003366;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-top: 5px;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 20px;
+        background-color: #003366;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background-color: #0055aa;
+    }
+
+    .mensagem-erro {
+        color: red;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="form-container">
+    <h2>Cadastrar Usuário</h2>
+    <form action="/cadastro" method="post">
+        <label for="usuario">Usuário:</label>
+        <input type="text" id="usuario" name="usuario" required>
+
+        {% if mensagem_usuario %}
+        <p class="mensagem-erro">{{ mensagem_usuario }}</p>
+        {% endif %}
+
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" required>
+
+        {% if mensagem_email %}
+        <p class="mensagem-erro">{{ mensagem_email }}</p>
+        {% endif %}
+
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha" name="senha" required>
+
+        <label for="perfil">Perfil:</label>
+        <select id="perfil" name="perfil" required>
+            <option value="funcionario">Funcionário</option>
+            <option value="admin">Administrador</option>
+        </select>
+
+        <button type="submit">Cadastrar</button>
+    </form>
+</div>
+{% endblock %}

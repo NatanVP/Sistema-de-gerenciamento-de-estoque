@@ -3,6 +3,6 @@ class Config:
 
     DB_HOST = "localhost"
     DB_PORT =1902
-    DB_USER = "seu_usuario"
+    DB_USER = "Seu_usuario"
     DB_PASSWORD = "sua_senha"
-    DB_NAME = "seu_banco"
+    DB_NAME = "estoque_db"

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .login-container {
+        max-width: 350px;
+        margin: 80px auto;
+        padding: 30px;
+        background-color: #f2f6fa;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-container h2 {
+        text-align: center;
+        color: #003366;
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+        color: #003366;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-top: 5px;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 20px;
+        background-color: #1abc9c;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    a{
+        color: white;
+        text-decoration: none;
+    }
+
+    button:hover {
+        background-color: #16a085;
+    }
+
+    .mensagem-erro {
+        color: red;
+        text-align: center;
+        margin-top: 15px;
+    }
+</style>
+
+<div class="login-container">
+    <h2>Login</h2>
+    <form action="/login" method="post">
+        <label for="usuario">Usuário:</label>
+        <input type="text" id="usuario" name="usuario" required>
+
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha" name="senha" required>
+
+        <button type="submit">Entrar</button>
+
+        {% if mensagem %}
+        <p class="mensagem-erro">{{ mensagem }}</p>
+        {% endif %}
+    </form>
+    <button><a href="{{ url_for('cadastro') }}">Cadastre um novo usuário</a></button>
+</div>
+{% endblock %}

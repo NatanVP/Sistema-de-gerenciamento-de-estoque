@@ -16,6 +16,10 @@ Tecnologias utilizadas:
 
 Funcionalidades:
 
+-Login e cadastro de usuários
+
+-Permissões para editar e excluir produtos
+
 -Cadastro de novos produtos
 
 -Edição de produtos existentes
@@ -43,9 +47,18 @@ CREATE TABLE produtos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     categoria VARCHAR(50),
-    quantidade INT NOT NULL,
-    preco_unitario DECIMAL(10,2) NOT NULL
+    quantidade INT NOT NULL
 );
+
+-- Criar tabela de usuários
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    perfil ENUM('admin', 'funcionario') NOT NULL DEFAULT 'funcionario'
+);
+
 ```
 
 Configuração de Conexão (config.py)

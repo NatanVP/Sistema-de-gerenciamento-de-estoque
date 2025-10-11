@@ -2,5 +2,15 @@
 
 {% block content %}
 <h1>Bem-vindo ao Sistema de Estoque</h1>
-<p>Escolha uma opção no menu.</p>
+<p>Escolha uma opção abaixo:</p>
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('login') }}">
+        <button style="padding:10px 20px; margin-right:10px;">Login</button>
+    </a>
+
+    <a href="{{ url_for('cadastro') }}">
+        <button style="padding:10px 20px;">Cadastrar Usuário</button>
+    </a>
+</div>
 {% endblock %}
