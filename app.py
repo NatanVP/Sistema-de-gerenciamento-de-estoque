@@ -166,5 +166,134 @@ def logout():
     return redirect(url_for("login"))
 
 
+
+# ====== GERENCIAR ESTOQUE ======
+@app.route("/estoque")
+def estoque():
+    # mostra a lista de produtos e opção de ajuste manual (só admin)
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM produtos")
+    produtos = cursor.fetchall()
+    cursor.close()
+    return render_template("estoque.html", produtos=produtos)
+
+# Ajuste manual (somente admin)
+@app.route("/estoque/ajustar", methods=["POST"])
+def ajustar_estoque():
+    if "perfil" not in session or session["perfil"] != "admin":
+        flash("Você não tem permissão para ajustar o estoque manualmente.", "danger")
+        return redirect(url_for("estoque"))
+
+    produto_id = request.form.get("produto_id")
+    nova_qtd = request.form.get("nova_quantidade")
+
+    try:
+        nova_qtd = int(nova_qtd)
+    except (ValueError, TypeError):
+        flash("Quantidade inválida.", "danger")
+        return redirect(url_for("estoque"))
+
+    cursor = db.cursor()
+    cursor.execute("UPDATE produtos SET quantidade = %s WHERE id = %s", (nova_qtd, produto_id))
+    db.commit()
+    cursor.close()
+    flash("Estoque ajustado com sucesso.", "success")
+    return redirect(url_for("estoque"))
+
+
+# ====== MOVIMENTAÇÕES (ENTRADA / SAÍDA) ======
+@app.route("/movimentacoes", methods=["GET"])
+def movimentacoes():
+    # lista produtos para formulário e exibe histórico (paginável no futuro)
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM produtos")
+    produtos = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT m.id, m.produto_id, m.tipo, m.quantidade, m.data, m.usuario, p.nome
+        FROM movimentacoes m
+        LEFT JOIN produtos p ON p.id = m.produto_id
+        ORDER BY m.data DESC
+        LIMIT 200
+    """)
+    historico = cursor.fetchall()
+    cursor.close()
+    return render_template("movimentacoes.html", produtos=produtos, historico=historico)
+
+
+# Registrar entrada
+@app.route("/movimentacoes/entrada", methods=["POST"])
+def movimentacao_entrada():
+    produto_id = request.form.get("produto_id")
+    quantidade = request.form.get("quantidade")
+
+    try:
+        quantidade = int(quantidade)
+    except (ValueError, TypeError):
+        flash("Quantidade inválida.", "danger")
+        return redirect(url_for("movimentacoes"))
+
+    if quantidade <= 0:
+        flash("Quantidade deve ser maior que zero.", "danger")
+        return redirect(url_for("movimentacoes"))
+
+    usuario = session.get("usuario", "desconhecido")
+
+    cursor = db.cursor()
+    # atualiza produtos
+    cursor.execute("UPDATE produtos SET quantidade = quantidade + %s WHERE id = %s", (quantidade, produto_id))
+    # insere movimentação
+    cursor.execute("INSERT INTO movimentacoes (produto_id, tipo, quantidade, usuario) VALUES (%s, %s, %s, %s)",
+                   (produto_id, 'entrada', quantidade, usuario))
+    db.commit()
+    cursor.close()
+
+    flash("Entrada registrada com sucesso.", "success")
+    return redirect(url_for("movimentacoes"))
+
+
+# Registrar saída
+@app.route("/movimentacoes/saida", methods=["POST"])
+def movimentacao_saida():
+    produto_id = request.form.get("produto_id")
+    quantidade = request.form.get("quantidade")
+
+    try:
+        quantidade = int(quantidade)
+    except (ValueError, TypeError):
+        flash("Quantidade inválida.", "danger")
+        return redirect(url_for("movimentacoes"))
+
+    if quantidade <= 0:
+        flash("Quantidade deve ser maior que zero.", "danger")
+        return redirect(url_for("movimentacoes"))
+
+    usuario = session.get("usuario", "desconhecido")
+
+    cursor = db.cursor(dictionary=True)
+    # verifica estoque atual
+    cursor.execute("SELECT quantidade FROM produtos WHERE id = %s", (produto_id,))
+    row = cursor.fetchone()
+    if not row:
+        cursor.close()
+        flash("Produto não encontrado.", "danger")
+        return redirect(url_for("movimentacoes"))
+
+    estoque_atual = int(row["quantidade"])
+    if quantidade > estoque_atual:
+        cursor.close()
+        flash("Estoque insuficiente para essa saída.", "danger")
+        return redirect(url_for("movimentacoes"))
+
+    cursor = db.cursor()
+    cursor.execute("UPDATE produtos SET quantidade = quantidade - %s WHERE id = %s", (quantidade, produto_id))
+    cursor.execute("INSERT INTO movimentacoes (produto_id, tipo, quantidade, usuario) VALUES (%s, %s, %s, %s)",
+                   (produto_id, 'saida', quantidade, usuario))
+    db.commit()
+    cursor.close()
+
+    flash("Saída registrada com sucesso.", "success")
+    return redirect(url_for("movimentacoes"))
+
 if __name__ == "__main__":
     app.run(debug=True)

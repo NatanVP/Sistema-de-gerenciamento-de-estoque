@@ -34,6 +34,10 @@ Funcionalidades:
 
 -Estrutura do Banco de Dados
 
+-Gerenciamento de Estoque em tempo real
+
+-Controle de entrada e saidas de produtos
+
 Para utilizar o sistema, é necessário criar o banco de dados no MySQL:
 ```
 -- Criar banco de dados
@@ -57,6 +61,17 @@ CREATE TABLE usuarios (
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     perfil ENUM('admin', 'funcionario') NOT NULL DEFAULT 'funcionario'
+);
+
+-- Criar tabela de movimentações
+CREATE TABLE movimentacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    produto_id INT NOT NULL,
+    tipo ENUM('entrada', 'saida') NOT NULL,
+    quantidade INT NOT NULL,
+    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario VARCHAR(100),
+    FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
 
 ```

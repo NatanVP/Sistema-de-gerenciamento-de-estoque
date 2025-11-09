@@ -253,3 +253,99 @@ form button:hover {
 p {
     margin-bottom: 10px;
 }
+
+.card {
+    background: #0b1220;
+    padding: 16px;
+    border-radius: 10px;
+    width: 320px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #cfeefc;
+}
+
+.card label {
+    display: block;
+    margin-top: 10px;
+    color: #9fb8d8;
+}
+
+.card input, .card select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #283646;
+    background: #171a20;
+    color: #e6eef6;
+    margin-top: 6px;
+}
+
+.prod-table table { /* mantém a tabela estilizada que já sugerimos antes */
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: #071124;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.prod-table th {
+    background-color: #05304f;
+    color: #dbeeff;
+    padding: 12px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.prod-table td {
+    padding: 12px;
+    border-top: 1px solid rgba(255,255,255,0.03);
+    color: #cfeefc;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: #ffffff; /* Cor do texto */
+    text-decoration: none; /* Tira o sublinhado */
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.2s ease;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    color: #00b4d8; /* Azul claro no hover */
+    transform: scale(1.05);
+}
+
+.nav-links a.active {
+    border-bottom: 2px solid #00b4d8; /* Marca a aba ativa */
+    padding-bottom: 3px;
+}
+
+a#botaonav {
+    background-color: #0050a0;
+    color: white;
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+a#botaonav:hover {
+    background-color: #025ebb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px #006ad3;
+}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Gerenciar Estoque</h2>
+
+<section class="prod-table">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Nome</th><th>Categoria</th><th>Quantidade</th><th>Ajuste Manual</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in produtos %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>{{ p.nome }}</td>
+                <td>{{ p.categoria }}</td>
+                <td>{{ p.quantidade }}</td>
+                <td>
+                    {% if session.get('perfil') == 'admin' %}
+                    <form action="{{ url_for('ajustar_estoque') }}" method="post" style="display:flex; gap:8px; align-items:center;">
+                        <input type="hidden" name="produto_id" value="{{ p.id }}">
+                        <input type="number" name="nova_quantidade" min="0" value="{{ p.quantidade }}" style="width:110px; padding:6px; border-radius:6px;">
+                        <button type="submit" class="editar">Ajustar</button>
+                    </form>
+                    {% else %}
+                    <span style="color:#bbb">Ajuste só para admins</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

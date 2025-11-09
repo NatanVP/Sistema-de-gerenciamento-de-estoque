@@ -8,22 +8,27 @@
 </head>
 <body>
     <nav class="navbar">
-    <div class="nav-title">
+    <div class="nav-left">
         <i class="fa-solid fa-boxes-stacked"></i>
-        <span>Gerenciamento de Estoque</span>
+        <span class="nav-title">Gerenciamento de Estoque</span>
     </div>
 
     {% if session.get('usuario') %}
+    <div class="nav-links">
+    <a href="{{ url_for('produtos') }}" class="{% if request.endpoint == 'produtos' %}active{% endif %}" id="botaonav">Produtos</a>
+    <a href="{{ url_for('estoque') }}" class="{% if request.endpoint == 'estoque' %}active{% endif %}" id="botaonav">Gerenciar Estoque</a>
+    <a href="{{ url_for('movimentacoes') }}" class="{% if request.endpoint == 'movimentacoes' %}active{% endif %}" id="botaonav">Movimentações</a>
+    </div>
+
     <div class="user-info">
         <i class="fa-solid fa-user"></i>
-        <span>{{ session['usuario'] }}</span>
+        <span>{{ session['usuario'] }} ({{ session['perfil']|capitalize }})</span>
         <form action="{{ url_for('logout') }}" method="get">
             <button type="submit" class="btn-logout">Sair</button>
         </form>
     </div>
     {% endif %}
 </nav>
-
     <hr>
 
     {% with messages = get_flashed_messages(with_categories=true) %}

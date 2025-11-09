@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Movimentações — Entrada / Saída</h2>
+
+<div class="mov-forms" style="display:flex; gap:30px; margin-bottom: 20px;">
+    <!-- Form: Entrada -->
+    <div class="card">
+        <h3>Registrar Entrada</h3>
+        <form action="{{ url_for('movimentacao_entrada') }}" method="post">
+            <label>Produto:</label>
+            <select name="produto_id" required>
+                <option value="">-- selecione --</option>
+                {% for p in produtos %}
+                <option value="{{ p.id }}">{{ p.nome }} ({{ p.categoria }}) — atual: {{ p.quantidade }}</option>
+                {% endfor %}
+            </select>
+            <label>Quantidade:</label>
+            <input type="number" name="quantidade" min="1" required>
+            <button type="submit" class="editar">Registrar Entrada</button>
+        </form>
+    </div>
+
+    <!-- Form: Saída -->
+    <div class="card">
+        <h3>Registrar Saída</h3>
+        <form action="{{ url_for('movimentacao_saida') }}" method="post">
+            <label>Produto:</label>
+            <select name="produto_id" required>
+                <option value="">-- selecione --</option>
+                {% for p in produtos %}
+                <option value="{{ p.id }}">{{ p.nome }} ({{ p.categoria }}) — atual: {{ p.quantidade }}</option>
+                {% endfor %}
+            </select>
+            <label>Quantidade:</label>
+            <input type="number" name="quantidade" min="1" required>
+            <button type="submit" class="excluir">Registrar Saída</button>
+        </form>
+    </div>
+</div>
+
+<h3>Histórico de Movimentações</h3>
+<section class="prod-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th><th>Produto</th><th>Tipo</th><th>Quantidade</th><th>Usuário</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in historico %}
+            <tr>
+                <td>{{ m.data }}</td>
+                <td>{{ m.nome or ('ID '+m.produto_id|string) }}</td>
+                <td>{{ m.tipo }}</td>
+                <td>{{ m.quantidade }}</td>
+                <td>{{ m.usuario }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}
