@@ -38,6 +38,8 @@ Funcionalidades:
 
 -Controle de entrada e saidas de produtos
 
+-Envio Automatico de relatorios
+
 Para utilizar o sistema, é necessário criar o banco de dados no MySQL:
 ```
 -- Criar banco de dados
@@ -74,17 +76,36 @@ CREATE TABLE movimentacoes (
     FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
 
+CREATE TABLE configuracoes_relatorios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(150) NOT NULL,
+    frequencia ENUM('diario', 'semanal', 'mensal') NOT NULL,
+    formato ENUM('pdf', 'csv') NOT NULL,
+    incluir_estoque BOOLEAN DEFAULT TRUE,
+    incluir_movimentacoes BOOLEAN DEFAULT TRUE,
+    incluir_produtos_criticos BOOLEAN DEFAULT TRUE
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+);
+
 ```
 
 Configuração de Conexão (config.py)
 
-Crie o arquivo config.py na raiz do projeto e insira as credenciais do seu banco MySQL:
+Crie o arquivo config.py na raiz do projeto e insira as credenciais do seu banco MySQL e seu e-mail para envio de relatorios:
 ```python
 db_config = {
     'host': 'localhost',      # Endereço do servidor MySQL
     'user': 'seu_usuario',    # Usuário do MySQL
     'password': 'sua_senha',  # Senha do MySQL
     'database': 'estoque'     # Nome do banco de dados criado
+    
+    
+    MAIL_HOST = "smtp.gmail.com"  
+    MAIL_PORT = 587
+    MAIL_USER = "Seu_email"  
+    MAIL_PASSWORD = "Sua_senha"  
+    MAIL_USE_TLS = True
 }
+
 ```
 
