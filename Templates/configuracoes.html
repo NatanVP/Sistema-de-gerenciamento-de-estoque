@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Configurações de Relatórios</h2>
+    
+    <form action="{{ url_for('salvar_configuracao') }}" method="POST" class="card" style="padding: 20px;">
+        <div class="form-group">
+            <label for="email_relatorios">E-mail:</label>
+            <input 
+                type="email" 
+                id="email_relatorios"
+                name="email_relatorios" 
+                class="form-control" 
+                placeholder="exemplo@email.com"
+                required>
+        </div>
+        
+        <div class="form-group">
+            <label for="frequencia">Frequência:</label>
+            <select name="frequencia" id="frequencia" class="form-control" required>
+                <option value="diario">Diário</option>
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="formato">Formato:</label>
+            <select name="formato" id="formato" class="form-control">
+                <option value="pdf">PDF</option>
+                <option value="csv">CSV</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Incluir no relatório:</label>
+            <div class="opcoes-relatorio">
+                <label>
+                    <input type="checkbox" name="estoque" checked> Estoque
+                </label>
+                <label>
+                    <input type="checkbox" name="movimentacoes" checked> Movimentações
+                </label>
+                <label>
+                    <input type="checkbox" name="criticos" checked> Produtos Críticos
+                </label>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-success mt-3">Salvar e Testar</button>
+    </form>
+    
+    <hr>
+    
+    <h3>Destinatários Cadastrados</h3>
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Frequência</th>
+                <th>Formato</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if configuracoes %}
+                {% for c in configuracoes %}
+                <tr>
+                    <td>{{ c.email }}</td>
+                    <td>{{ c.frequencia }}</td>
+                    <td>{{ c.formato }}</td>
+                    <td>
+                        <form action="{{ url_for('excluir_configuracao', id=c.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Deseja realmente excluir?')">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center;">Nenhuma configuração cadastrada</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .opcoes-relatorio {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .opcoes-relatorio label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: normal;
+    }
+    
+    .opcoes-relatorio input[type="checkbox"] {
+        width: auto;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .mt-3 {
+        margin-top: 15px;
+    }
+    
+    .tabela {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+    
+    .tabela th, .tabela td {
+        padding: 12px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+    
+    .tabela th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background-color: #218838;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+</style>
+{% endblock %}

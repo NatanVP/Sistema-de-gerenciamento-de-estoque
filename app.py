@@ -1,6 +1,192 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import mysql.connector
 from config import Config
+from apscheduler.schedulers.background import BackgroundScheduler
+import relatorios as relatorio
+import relatorios
+from email_utils import enviar_relatorio
+
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+def enviar_email(destinatario, assunto, mensagem):
+    try:
+        print("\n" + "="*60)
+        print("=== INICIANDO ENVIO DE E-MAIL ===")
+        print("="*60)
+        print(f"Destinatario: {destinatario}")
+        print(f"Assunto: {assunto}")
+        print(f"Host: {app.config.get('MAIL_HOST')}")
+        print(f"Porta: {app.config.get('MAIL_PORT')}")
+        print(f"Usuario: {app.config.get('MAIL_USER')}")
+        print(f"Senha configurada: {'Sim' if app.config.get('MAIL_PASSWORD') else 'NAO!'}")
+        print(f"TLS: {app.config.get('MAIL_USE_TLS')}")
+        print("="*60)
+        
+        msg = MIMEMultipart()
+        msg["From"] = app.config["MAIL_USER"]
+        msg["To"] = destinatario
+        msg["Subject"] = assunto
+
+        msg.attach(MIMEText(mensagem, "html"))
+
+        print("Conectando ao servidor SMTP...")
+        server = smtplib.SMTP(app.config["MAIL_HOST"], app.config["MAIL_PORT"])
+        server.set_debuglevel(1)  # Ativa debug detalhado
+        
+        if app.config.get("MAIL_USE_TLS", True):
+            print("Iniciando TLS...")
+            server.starttls()
+
+        print("Fazendo login...")
+        server.login(app.config["MAIL_USER"], app.config["MAIL_PASSWORD"])
+        
+        print("Enviando mensagem...")
+        server.send_message(msg)
+        server.quit()
+        
+        print("="*60)
+        print(">>> E-MAIL ENVIADO COM SUCESSO! <<<")
+        print("="*60 + "\n")
+        return True
+
+    except smtplib.SMTPAuthenticationError as e:
+        print("\n" + "="*60)
+        print("ERRO DE AUTENTICACAO!")
+        print("="*60)
+        print("Possiveis causas:")
+        print("1. Senha de app incorreta")
+        print("2. Verificacao em 2 etapas nao ativada")
+        print("3. E-mail incorreto")
+        print(f"\nDetalhes: {e}")
+        print("="*60 + "\n")
+        return False
+        
+    except smtplib.SMTPException as e:
+        print("\n" + "="*60)
+        print("ERRO SMTP!")
+        print("="*60)
+        print(f"Detalhes: {e}")
+        print("="*60 + "\n")
+        return False
+        
+    except Exception as e:
+        print("\n" + "="*60)
+        print("ERRO DESCONHECIDO!")
+        print("="*60)
+        print(f"Tipo: {type(e).__name__}")
+        print(f"Detalhes: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print("="*60 + "\n")
+        return False
+    
+def tarefa_relatorios():
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM configuracoes_relatorios")
+    configs = cursor.fetchall()
+    cursor.close()
+
+    for cfg in configs:
+        arquivo = gerar_relatorio_resumo()
+        enviar_relatorio(cfg["email"], arquivo)
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(tarefa_relatorios, 'interval', hours=24)
+scheduler.start()
+
+# relatorios.py
+import mysql.connector
+from config import Config
+
+def gerar_relatorio_resumo():
+    """Gera um resumo do estoque em HTML"""
+    try:
+        db = mysql.connector.connect(
+            host=Config.DB_HOST,
+            port=Config.DB_PORT,
+            user=Config.DB_USER,
+            password=Config.DB_PASSWORD,
+            database=Config.DB_NAME
+        )
+        
+        cursor = db.cursor(dictionary=True)
+        
+        # Total de produtos
+        cursor.execute("SELECT COUNT(*) as total FROM produtos")
+        total_produtos = cursor.fetchone()['total']
+        
+        # Produtos com estoque baixo (exemplo: menos de 10 unidades)
+        cursor.execute("SELECT nome, quantidade FROM produtos WHERE quantidade < 10 ORDER BY quantidade")
+        produtos_criticos = cursor.fetchall()
+        
+        # Últimas movimentações
+        cursor.execute("""
+            SELECT m.tipo, p.nome, m.quantidade, m.data, m.usuario
+            FROM movimentacoes m
+            JOIN produtos p ON p.id = m.produto_id
+            ORDER BY m.data DESC
+            LIMIT 10
+        """)
+        ultimas_movimentacoes = cursor.fetchall()
+        
+        cursor.close()
+        db.close()
+        
+        # Monta o HTML do relatório
+        html = f"""
+        <h3>Resumo do Estoque</h3>
+        <p><strong>Total de Produtos:</strong> {total_produtos}</p>
+        
+        <h4>Produtos com Estoque Baixo:</h4>
+        <table border="1" cellpadding="5" cellspacing="0">
+            <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+            </tr>
+        """
+        
+        for produto in produtos_criticos:
+            html += f"""
+            <tr>
+                <td>{produto['nome']}</td>
+                <td>{produto['quantidade']}</td>
+            </tr>
+            """
+        
+        html += """
+        </table>
+        
+        <h4>Últimas Movimentações:</h4>
+        <table border="1" cellpadding="5" cellspacing="0">
+            <tr>
+                <th>Tipo</th>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Data</th>
+                <th>Usuário</th>
+            </tr>
+        """
+        
+        for mov in ultimas_movimentacoes:
+            html += f"""
+            <tr>
+                <td>{mov['tipo']}</td>
+                <td>{mov['nome']}</td>
+                <td>{mov['quantidade']}</td>
+                <td>{mov['data']}</td>
+                <td>{mov['usuario']}</td>
+            </tr>
+            """
+        
+        html += "</table>"
+        
+        return html
+        
+    except Exception as e:
+        print(f"Erro ao gerar relatório: {e}")
+        return "<p>Erro ao gerar relatório.</p>"
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -294,6 +480,120 @@ def movimentacao_saida():
 
     flash("Saída registrada com sucesso.", "success")
     return redirect(url_for("movimentacoes"))
+
+
+@app.route("/configuracoes", methods=["GET"])
+def configuracoes():
+    if "perfil" not in session or session["perfil"] != "admin":
+        flash("Você não tem permissão para acessar esta área.", "danger")
+        return redirect(url_for("produtos"))
+
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM configuracoes_relatorios")
+    configuracoes = cursor.fetchall()
+    cursor.close()
+
+    return render_template("configuracoes.html", configuracoes=configuracoes)
+
+
+@app.route("/configuracoes/salvar", methods=["POST"])
+def salvar_configuracao():
+    if "perfil" not in session or session["perfil"] != "admin":
+        flash("Sem permissão.", "danger")
+        return redirect(url_for("configuracoes"))
+
+    email = request.form.get("email_relatorios")
+    frequencia = request.form.get("frequencia", "diario")
+    formato = request.form.get("formato", "pdf")
+
+    if not email:
+        flash("E-mail é obrigatório!", "danger")
+        return redirect(url_for("configuracoes"))
+
+    incluir_estoque = 1 if "estoque" in request.form else 0
+    incluir_mov = 1 if "movimentacoes" in request.form else 0
+    incluir_criticos = 1 if "criticos" in request.form else 0
+
+    # Salva a configuração no banco
+    cursor = db.cursor()
+    cursor.execute("""
+        INSERT INTO configuracoes_relatorios 
+        (email, frequencia, formato, incluir_estoque, incluir_movimentacoes, incluir_produtos_criticos)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (email, frequencia, formato, incluir_estoque, incluir_mov, incluir_criticos))
+    db.commit()
+    cursor.close()
+
+    # Gera e envia o relatório de teste
+    try:
+        # Passa as opções selecionadas para gerar o relatório
+        conteudo_relatorio = relatorio.gerar_relatorio_resumo(
+            incluir_estoque=bool(incluir_estoque),
+            incluir_movimentacoes=bool(incluir_mov),
+            incluir_criticos=bool(incluir_criticos)
+        )
+        
+        opcoes_selecionadas = []
+        if incluir_estoque:
+            opcoes_selecionadas.append("Estoque")
+        if incluir_mov:
+            opcoes_selecionadas.append("Movimentações")
+        if incluir_criticos:
+            opcoes_selecionadas.append("Produtos Críticos")
+        
+        assunto = "Teste de Relatório - Sistema de Estoque"
+        mensagem = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif;">
+            <h2 style="color: #333;">📊 Relatório de Teste - Sistema de Estoque</h2>
+            <p>Este e-mail confirma que as configurações foram salvas com sucesso.</p>
+            <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p><strong>⚙️ Configurações:</strong></p>
+                <ul>
+                    <li><strong>E-mail:</strong> {email}</li>
+                    <li><strong>Frequência:</strong> {frequencia}</li>
+                    <li><strong>Formato:</strong> {formato}</li>
+                    <li><strong>Incluído no relatório:</strong> {', '.join(opcoes_selecionadas) if opcoes_selecionadas else 'Nenhuma opção'}</li>
+                </ul>
+            </div>
+            <hr style="border: 1px solid #ddd;">
+            {conteudo_relatorio}
+            <hr style="border: 1px solid #ddd; margin-top: 30px;">
+            <p style="color: #666; font-size: 12px;">Este é um e-mail automático do Sistema de Gerenciamento de Estoque.</p>
+        </body>
+        </html>
+        """
+        
+        enviado = enviar_email(email, assunto, mensagem)
+        
+        if enviado:
+            flash("✅ Configuração adicionada e e-mail de teste enviado com sucesso!", "success")
+        else:
+            flash("⚠️ Configuração adicionada, mas houve erro ao enviar o e-mail de teste.", "warning")
+            
+    except Exception as e:
+        print(f"Erro ao gerar/enviar relatório de teste: {e}")
+        import traceback
+        traceback.print_exc()
+        flash("⚠️ Configuração adicionada, mas houve erro ao gerar o relatório de teste.", "warning")
+
+    return redirect(url_for("configuracoes"))
+
+@app.route("/configuracoes/excluir/<int:id>", methods=["POST"])
+def excluir_configuracao(id):
+    if "perfil" not in session or session["perfil"] != "admin":
+        flash("Sem permissão.", "danger")
+        return redirect(url_for("configuracoes"))
+
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM configuracoes_relatorios WHERE id = %s", (id,))
+    db.commit()
+    cursor.close()
+
+    flash("Configuração apagada.", "info")
+    return redirect(url_for("configuracoes"))
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

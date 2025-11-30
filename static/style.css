@@ -313,7 +313,7 @@ p {
 }
 
 .nav-links a {
-    color: #ffffff; /* Cor do texto */
+    color: #ffffff; 
     text-decoration: none; /* Tira o sublinhado */
     font-weight: 500;
     transition: color 0.3s ease, transform 0.2s ease;
@@ -348,4 +348,16 @@ a#botaonav:hover {
     background-color: #025ebb;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px #006ad3;
+}
+
+.opcoes-relatorio label {
+    display: flex;
+    align-items: center;
+
+}
+.opcoes-relatorio input {
+    width: 50px;
+    height: 15px;
+    display: inline-flex;
+
 }
